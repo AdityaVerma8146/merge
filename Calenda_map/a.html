@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Task Calendar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #f4f6f8;
+      color: #333;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar - Task Input Panel */
+    .sidebar {
+      width: 320px;
+      background: #ffffff;
+      border-right: 1px solid #e0e0e0;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+    }
+
+    .sidebar h2 {
+      font-size: 1.25rem;
+      color: #1a1a1a;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+    }
+
+    .form-group input, .form-group select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      border-color: #4f46e5;
+    }
+
+    button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #4338ca;
+    }
+
+    /* Main Area - Calendar */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .calendar-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btns button {
+      padding: 6px 12px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .nav-btns button:hover {
+      background: #d1d5db;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: #e0e0e0;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .day-header {
+      background: #f9fafb;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      color: #4b5563;
+      font-size: 0.85rem;
+    }
+
+    .day-cell {
+      background: #ffffff;
+      padding: 8px;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .day-number {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .day-cell.current-month .day-number {
+      color: #111827;
+    }
+
+    .day-cell.today {
+      background: #eff6ff;
+    }
+
+    /* Task Badges */
+    .task-item {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: white;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+    }
+
+    .task-assignment { background-color: #ef4444; }
+    .task-exam { background-color: #f59e0b; }
+    .task-study { background-color: #10b981; }
+    .task-other { background-color: #3b82f6; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar: Add Task -->
+  <div class="sidebar">
+    <h2>Add New Task</h2>
+    <div class="form-group">
+      <label for="taskTitle">Task Title</label>
+      <input type="text" id="taskTitle" placeholder="e.g., CS Assignment 1">
+    </div>
+    
+    <div class="form-group">
+      <label for="taskDate">Date</label>
+      <input type="date" id="taskDate">
+    </div>
+
+    <div class="form-group">
+      <label for="taskCategory">Category</label>
+      <select id="taskCategory">
+        <option value="assignment">Assignment</option>
+        <option value="exam">Exam</option>
+        <option value="study">Study Session</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <button onclick="addTask()">Map to Calendar</button>
+  </div>
+
+  <!-- Main Calendar -->
+  <div class="main-content">
+    <div class="calendar-header">
+      <h1 id="monthYear"></h1>
+      <div class="nav-btns">
+        <button onclick="changeMonth(-1)">&lt; Prev</button>
+        <button onclick="changeMonth(1)">Next &gt;</button>
+      </div>
+    </div>
+
+    <div class="calendar-grid" id="calendarGrid">
+      <!-- Headers -->
+      <div class="day-header">Sun</div>
+      <div class="day-header">Mon</div>
+      <div class="day-header">Tue</div>
+      <div class="day-header">Wed</div>
+      <div class="day-header">Thu</div>
+      <div class="day-header">Fri</div>
+      <div class="day-header">Sat</div>
+      <!-- Days dynamically injected here -->
+    </div>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    const tasks = [];
+
+    function renderCalendar() {
+      const calendarGrid = document.getElementById('calendarGrid');
+      const monthYear = document.getElementById('monthYear');
+      
+      // Clear previous day cells
+      const cells = calendarGrid.querySelectorAll('.day-cell');
+      cells.forEach(cell => cell.remove());
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+
+      // Set Header Text
+      const monthNames = ["January", "February", "March", "April", "May", "June", 
+                          "July", "August", "September", "October", "November", "December"];
+      monthYear.textContent = `${monthNames[month]} ${year}`;
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+      const prevMonthDays = new Date(year, month, 0).getDate();
+
+      // Render Previous Month's Padding Days
+      for (let x = firstDayIndex; x > 0; x--) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell';
+        cell.innerHTML = `<span class="day-number">${prevMonthDays - x + 1}</span>`;
+        calendarGrid.appendChild(cell);
+      }
+
+      // Render Current Month Days
+      const today = new Date();
+      for (let day = 1; day <= totalDays; day++) {
+        const cell = document.createElement('div');
+        cell.className = 'day-cell current-month';
+        
+        // Highlight Today
+        if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+          cell.classList.add('today');
+        }
+
+        cell.innerHTML = `<span class="day-number">${day}</span>`;
+
+        // Map Tasks to Current Day
+        const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayTasks = tasks.filter(t => t.date === formattedDate);
+
+        dayTasks.forEach(t => {
+          const taskEl = document.createElement('div');
+          taskEl.className = `task-item task-${t.category}`;
+          taskEl.textContent = t.title;
+          cell.appendChild(taskEl);
+        });
+
+        calendarGrid.appendChild(cell);
+      }
+    }
+
+    function addTask() {
+      const title = document.getElementById('taskTitle').value;
+      const date = document.getElementById('taskDate').value;
+      const category = document.getElementById('taskCategory').value;
+
+      if (!title || !date) {
+        alert('Please fill out all fields.');
+        return;
+      }
+
+      tasks.push({ title, date, category });
+      
+      // Reset inputs
+      document.getElementById('taskTitle').value = '';
+      document.getElementById('taskDate').value = '';
+
+      renderCalendar();
+    }
+
+    function changeMonth(delta) {
+      currentDate.setMonth(currentDate.getMonth() + delta);
+      renderCalendar();
+    }
+
+    // Initial Render
+    renderCalendar();
+  </script>
+</body>
+</html>
